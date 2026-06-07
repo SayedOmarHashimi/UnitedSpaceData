@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MOCK_DOCUMENTS } from "@/lib/mock-data";
+import { fetchDocuments, incrementDownload, type DbDocument } from "@/lib/supabase";
 import { CATEGORIES, type DocumentCategory } from "@/types";
 import { formatBytes, formatDate } from "@/lib/utils";
 
@@ -16,47 +16,76 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const FILE_TYPE_BG: Record<string, string> = {
-  PDF: "rgba(248,113,113,0.12)",
-  CSV: "rgba(52,211,153,0.12)",
-  JSON: "rgba(251,191,36,0.12)",
-  PNG: "rgba(96,165,250,0.12)",
-  FITS: "rgba(167,139,250,0.12)",
-  ZIP: "rgba(249,115,22,0.12)",
+  PDF: "rgba(248,113,113,0.12)", CSV: "rgba(52,211,153,0.12)",
+  JSON: "rgba(251,191,36,0.12)", PNG: "rgba(96,165,250,0.12)",
+  FITS: "rgba(167,139,250,0.12)", ZIP: "rgba(249,115,22,0.12)",
 };
 const FILE_TYPE_COLOR: Record<string, string> = {
   PDF: "#F87171", CSV: "#34D399", JSON: "#FBBF24",
   PNG: "#60A5FA", FITS: "#A78BFA", ZIP: "#F97316",
 };
 
-function DownloadIcon() {
+function Skeleton() {
   return (
-    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
+    <div className="card p-5 flex flex-col gap-4 animate-pulse">
+      <div className="flex justify-between">
+        <div className="h-5 w-24 rounded-md bg-white/6" />
+        <div className="h-5 w-12 rounded-md bg-white/6" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 w-full rounded bg-white/6" />
+        <div className="h-4 w-3/4 rounded bg-white/6" />
+      </div>
+      <div className="mt-auto pt-3 flex justify-between" style={{ borderTop: "1px solid var(--border)" }}>
+        <div className="h-4 w-28 rounded bg-white/6" />
+        <div className="h-7 w-24 rounded-lg bg-white/6" />
+      </div>
+    </div>
   );
 }
 
 export default function DocumentLibrary() {
+  const [docs, setDocs] = useState<DbDocument[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<DocumentCategory | "All">("All");
 
+  useEffect(() => {
+    fetchDocuments()
+      .then(setDocs)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return MOCK_DOCUMENTS.filter((doc) => {
+    return docs.filter((doc) => {
       const matchCat = activeCategory === "All" || doc.category === activeCategory;
       const matchSearch =
         !q ||
         doc.title.toLowerCase().includes(q) ||
         doc.contributor.toLowerCase().includes(q) ||
-        doc.tags.some((t) => t.toLowerCase().includes(q));
+        doc.category.toLowerCase().includes(q);
       return matchCat && matchSearch;
     });
-  }, [search, activeCategory]);
+  }, [docs, search, activeCategory]);
+
+  const handleDownload = async (doc: DbDocument) => {
+    // Increment count in background
+    incrementDownload(doc.id).catch(() => {});
+    // Open file
+    window.open(doc.file_url, "_blank", "noopener,noreferrer");
+    // Optimistic update
+    setDocs((prev) =>
+      prev.map((d) => (d.id === doc.id ? { ...d, download_count: d.download_count + 1 } : d))
+    );
+  };
 
   return (
     <section id="library" className="py-20 px-6">
       <div className="max-w-6xl mx-auto">
-        {/* Section header */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -84,14 +113,14 @@ export default function DocumentLibrary() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search titles, authors, tags…"
+                placeholder="Search titles, authors…"
                 className="input !pl-9 !text-xs"
               />
             </div>
           </div>
         </motion.div>
 
-        {/* Category filter row */}
+        {/* Category filters */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -119,85 +148,115 @@ export default function DocumentLibrary() {
           })}
         </motion.div>
 
+        {/* Error */}
+        {error && (
+          <div
+            className="mb-6 px-4 py-3 rounded-xl text-sm text-red-400"
+            style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
+          >
+            Failed to load documents: {error}
+          </div>
+        )}
+
         {/* Result count */}
-        <p
-          className="text-xs text-[var(--muted)] mb-6"
-          style={{ fontFamily: "Roboto Mono, monospace" }}
-        >
-          {filtered.length} result{filtered.length !== 1 ? "s" : ""}
-        </p>
+        {!loading && !error && (
+          <p className="text-xs text-[var(--muted)] mb-6" style={{ fontFamily: "Roboto Mono, monospace" }}>
+            {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+          </p>
+        )}
 
-        {/* Card grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((doc, idx) => {
-            const catColor = CATEGORY_COLORS[doc.category] || "#00D4FF";
-            return (
-              <motion.div
-                key={doc.id}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: idx * 0.04 }}
-                className="card group cursor-pointer p-5 flex flex-col gap-4"
-              >
-                {/* Top row: category + file type */}
-                <div className="flex items-center justify-between">
-                  <span
-                    className="tag"
-                    style={{
-                      background: `${catColor}14`,
-                      color: catColor,
-                      border: `1px solid ${catColor}28`,
-                    }}
-                  >
-                    {doc.category}
-                  </span>
-                  <span
-                    className="tag"
-                    style={{
-                      background: FILE_TYPE_BG[doc.fileType] || "rgba(255,255,255,0.06)",
-                      color: FILE_TYPE_COLOR[doc.fileType] || "#94A3B8",
-                    }}
-                  >
-                    {doc.fileType}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h3 className="text-white text-sm font-semibold leading-snug line-clamp-2 group-hover:text-[#00D4FF] transition-colors duration-150">
-                  {doc.title}
-                </h3>
-
-                {/* Meta */}
-                <div
-                  className="mt-auto pt-3 flex items-center justify-between"
-                  style={{ borderTop: "1px solid var(--border)" }}
+        {/* Grid */}
+        {loading ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} />)}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-sm text-[var(--muted)]">
+              {docs.length === 0
+                ? "No documents yet — be the first to upload."
+                : "No documents match your search."}
+            </p>
+            {docs.length === 0 && (
+              <a href="#upload" className="btn-primary mt-6 mx-auto">
+                Upload Now
+              </a>
+            )}
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((doc, idx) => {
+              const catColor = CATEGORY_COLORS[doc.category] || "#00D4FF";
+              const ftType = doc.file_type ?? "FILE";
+              return (
+                <motion.div
+                  key={doc.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: idx * 0.04 }}
+                  className="card group cursor-default p-5 flex flex-col gap-4"
                 >
-                  <div>
-                    <p className="text-white text-xs font-medium truncate max-w-[120px]">{doc.contributor}</p>
-                    <p className="text-[var(--muted)] text-xs mt-0.5">{formatDate(doc.uploadDate)}</p>
+                  {/* Top: category + file type */}
+                  <div className="flex items-center justify-between">
+                    <span
+                      className="tag"
+                      style={{
+                        background: `${catColor}14`,
+                        color: catColor,
+                        border: `1px solid ${catColor}28`,
+                      }}
+                    >
+                      {doc.category}
+                    </span>
+                    <span
+                      className="tag"
+                      style={{
+                        background: FILE_TYPE_BG[ftType] || "rgba(255,255,255,0.06)",
+                        color: FILE_TYPE_COLOR[ftType] || "#94A3B8",
+                      }}
+                    >
+                      {ftType}
+                    </span>
                   </div>
-                  <button
-                    className="cursor-pointer flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 hover:bg-white/8"
-                    style={{
-                      color: catColor,
-                      border: `1px solid ${catColor}28`,
-                      background: `${catColor}0a`,
-                    }}
-                    aria-label={`Download ${doc.title}`}
-                  >
-                    <DownloadIcon />
-                    {formatBytes(doc.fileSize)}
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
 
-        {filtered.length === 0 && (
-          <div className="text-center py-20 text-[var(--muted)]">
-            <p className="text-sm">No documents match your search.</p>
+                  {/* Title */}
+                  <h3 className="text-white text-sm font-semibold leading-snug line-clamp-2 group-hover:text-[#00D4FF] transition-colors duration-150">
+                    {doc.title}
+                  </h3>
+
+                  {/* Footer */}
+                  <div
+                    className="mt-auto pt-3 flex items-center justify-between"
+                    style={{ borderTop: "1px solid var(--border)" }}
+                  >
+                    <div>
+                      <p className="text-white text-xs font-medium truncate max-w-[120px]">
+                        {doc.contributor}
+                      </p>
+                      <p className="text-[var(--muted)] text-xs mt-0.5">
+                        {formatDate(doc.created_at)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDownload(doc)}
+                      className="cursor-pointer flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 hover:scale-105"
+                      style={{
+                        color: catColor,
+                        border: `1px solid ${catColor}28`,
+                        background: `${catColor}0a`,
+                      }}
+                      aria-label={`Download ${doc.title}`}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      {doc.file_size ? formatBytes(doc.file_size) : "Download"}
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
