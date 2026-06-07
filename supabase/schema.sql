@@ -1,5 +1,6 @@
 -- United Space Data — Supabase schema
--- Run this in the Supabase SQL editor: https://supabase.com/dashboard/project/stjpiqahhpnnmtocbxbr/sql
+-- Run this in the Supabase SQL editor:
+-- https://supabase.com/dashboard/project/stjpiqahhpnnmtocbxbr/sql
 
 create table if not exists documents (
   id uuid default gen_random_uuid() primary key,
@@ -16,16 +17,30 @@ create table if not exists documents (
   created_at timestamp with time zone default now()
 );
 
--- Row-level security
 alter table documents enable row level security;
 
-create policy if not exists "Anyone can read documents"
-  on documents for select using (true);
+-- CREATE POLICY IF NOT EXISTS is not supported in Postgres < 15.
+-- Use a DO block to achieve idempotent policy creation.
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where tablename = 'documents' and policyname = 'Anyone can read documents'
+  ) then
+    create policy "Anyone can read documents"
+      on documents for select using (true);
+  end if;
 
-create policy if not exists "Anyone can insert documents"
-  on documents for insert with check (true);
+  if not exists (
+    select 1 from pg_policies
+    where tablename = 'documents' and policyname = 'Anyone can insert documents'
+  ) then
+    create policy "Anyone can insert documents"
+      on documents for insert with check (true);
+  end if;
+end $$;
 
--- Function used by the download button to increment count atomically
+-- Atomically increment download_count (called by the download button)
 create or replace function increment_download(doc_id uuid)
 returns void
 language sql
