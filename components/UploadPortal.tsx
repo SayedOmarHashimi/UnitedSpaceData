@@ -72,6 +72,8 @@ export default function UploadPortal() {
       setFiles((prev) =>
         prev.map((f, i) => (i === idx ? { ...f, state: "success", progress: 100 } : f))
       );
+      // Notify DocumentLibrary to refresh its list
+      window.dispatchEvent(new CustomEvent("usd:document-uploaded"));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Upload failed";
       setFiles((prev) =>
