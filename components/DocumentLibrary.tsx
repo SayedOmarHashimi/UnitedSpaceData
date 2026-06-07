@@ -6,39 +6,31 @@ import { fetchDocuments, incrementDownload, type DbDocument } from "@/lib/supaba
 import { CATEGORIES, type DocumentCategory } from "@/types";
 import { formatBytes, formatDate } from "@/lib/utils";
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Astronomy: "#00D4FF",
-  Missions: "#3B82F6",
-  Satellites: "#7C3AED",
-  "Deep Space": "#A855F7",
-  "Earth Observation": "#10B981",
-  Research: "#F59E0B",
+const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  Astronomy:          { bg: "rgba(74,144,217,0.08)",  text: "#2952A3", border: "rgba(74,144,217,0.25)" },
+  Missions:           { bg: "rgba(27,58,107,0.08)",   text: "#1B3A6B", border: "rgba(27,58,107,0.2)" },
+  Satellites:         { bg: "rgba(41,82,163,0.08)",   text: "#2952A3", border: "rgba(41,82,163,0.2)" },
+  "Deep Space":       { bg: "rgba(10,22,40,0.06)",    text: "#0A1628", border: "rgba(10,22,40,0.15)" },
+  "Earth Observation":{ bg: "rgba(74,144,217,0.1)",   text: "#2F6BB8", border: "rgba(74,144,217,0.3)" },
+  Research:           { bg: "rgba(27,58,107,0.07)",   text: "#1B3A6B", border: "rgba(27,58,107,0.18)" },
 };
 
-const FILE_TYPE_BG: Record<string, string> = {
-  PDF: "rgba(248,113,113,0.12)", CSV: "rgba(52,211,153,0.12)",
-  JSON: "rgba(251,191,36,0.12)", PNG: "rgba(96,165,250,0.12)",
-  FITS: "rgba(167,139,250,0.12)", ZIP: "rgba(249,115,22,0.12)",
-};
-const FILE_TYPE_COLOR: Record<string, string> = {
-  PDF: "#F87171", CSV: "#34D399", JSON: "#FBBF24",
-  PNG: "#60A5FA", FITS: "#A78BFA", ZIP: "#F97316",
-};
+const FALLBACK_COLORS = { bg: "rgba(10,22,40,0.06)", text: "#1B3A6B", border: "rgba(10,22,40,0.15)" };
 
 function Skeleton() {
   return (
     <div className="card p-5 flex flex-col gap-4 animate-pulse">
       <div className="flex justify-between">
-        <div className="h-5 w-24 rounded-md bg-white/6" />
-        <div className="h-5 w-12 rounded-md bg-white/6" />
+        <div className="h-5 w-24 rounded bg-navy/6" />
+        <div className="h-5 w-12 rounded bg-navy/6" />
       </div>
       <div className="space-y-2">
-        <div className="h-4 w-full rounded bg-white/6" />
-        <div className="h-4 w-3/4 rounded bg-white/6" />
+        <div className="h-4 w-full rounded bg-navy/6" />
+        <div className="h-4 w-3/4 rounded bg-navy/6" />
       </div>
-      <div className="mt-auto pt-3 flex justify-between" style={{ borderTop: "1px solid var(--border)" }}>
-        <div className="h-4 w-28 rounded bg-white/6" />
-        <div className="h-7 w-24 rounded-lg bg-white/6" />
+      <div className="mt-auto pt-3 flex justify-between" style={{ borderTop: "1px solid rgba(10,22,40,0.1)" }}>
+        <div className="h-4 w-28 rounded bg-navy/6" />
+        <div className="h-7 w-24 rounded-lg bg-navy/6" />
       </div>
     </div>
   );
@@ -72,11 +64,8 @@ export default function DocumentLibrary() {
   }, [docs, search, activeCategory]);
 
   const handleDownload = async (doc: DbDocument) => {
-    // Increment count in background
     incrementDownload(doc.id).catch(() => {});
-    // Open file
     window.open(doc.file_url, "_blank", "noopener,noreferrer");
-    // Optimistic update
     setDocs((prev) =>
       prev.map((d) => (d.id === doc.id ? { ...d, download_count: d.download_count + 1 } : d))
     );
@@ -84,27 +73,21 @@ export default function DocumentLibrary() {
 
   return (
     <section id="library" className="py-20 px-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="container-wide">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="mb-10"
         >
           <p className="section-label mb-3">Document Archive</p>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <h2
-              className="text-3xl md:text-4xl font-black text-white"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              Browse the Archive
-            </h2>
-            {/* Search */}
+            <h2 className="text-headline font-bold text-navy">Browse the Archive</h2>
             <div className="relative max-w-xs w-full">
               <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy/40"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -130,16 +113,18 @@ export default function DocumentLibrary() {
         >
           {(["All", ...CATEGORIES] as (DocumentCategory | "All")[]).map((cat) => {
             const isActive = activeCategory === cat;
-            const color = cat === "All" ? "#00D4FF" : CATEGORY_COLORS[cat];
+            const colors = cat === "All"
+              ? { bg: "rgba(74,144,217,0.1)", text: "#2F6BB8", border: "rgba(74,144,217,0.3)" }
+              : (CATEGORY_COLORS[cat] ?? FALLBACK_COLORS);
             return (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className="cursor-pointer text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all duration-150"
                 style={{
-                  background: isActive ? `${color}18` : "transparent",
-                  border: `1px solid ${isActive ? color : "var(--border)"}`,
-                  color: isActive ? color : "var(--muted-light)",
+                  background: isActive ? colors.bg : "transparent",
+                  border: `1px solid ${isActive ? colors.border : "rgba(10,22,40,0.12)"}`,
+                  color: isActive ? colors.text : "rgba(10,22,40,0.45)",
                 }}
               >
                 {cat}
@@ -151,7 +136,7 @@ export default function DocumentLibrary() {
         {/* Error */}
         {error && (
           <div
-            className="mb-6 px-4 py-3 rounded-xl text-sm text-red-400"
+            className="mb-6 px-4 py-3 rounded-xl text-sm text-red-600"
             style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
           >
             Failed to load documents: {error}
@@ -160,7 +145,10 @@ export default function DocumentLibrary() {
 
         {/* Result count */}
         {!loading && !error && (
-          <p className="text-xs text-[var(--muted)] mb-6" style={{ fontFamily: "Roboto Mono, monospace" }}>
+          <p
+            className="text-xs text-navy/40 mb-6"
+            style={{ fontFamily: "JetBrains Mono, monospace" }}
+          >
             {filtered.length} result{filtered.length !== 1 ? "s" : ""}
           </p>
         )}
@@ -172,7 +160,7 @@ export default function DocumentLibrary() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-sm text-[var(--muted)]">
+            <p className="text-sm text-navy/45">
               {docs.length === 0
                 ? "No documents yet — be the first to upload."
                 : "No documents match your search."}
@@ -186,7 +174,7 @@ export default function DocumentLibrary() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((doc, idx) => {
-              const catColor = CATEGORY_COLORS[doc.category] || "#00D4FF";
+              const colors = CATEGORY_COLORS[doc.category] ?? FALLBACK_COLORS;
               const ftType = doc.file_type ?? "FILE";
               return (
                 <motion.div
@@ -194,17 +182,18 @@ export default function DocumentLibrary() {
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.35, delay: idx * 0.04 }}
+                  transition={{ duration: 0.4, delay: idx * 0.04, ease: [0.22, 1, 0.36, 1] }}
                   className="card group cursor-default p-5 flex flex-col gap-4"
+                  style={{ background: "#FDFAF5" }}
                 >
                   {/* Top: category + file type */}
                   <div className="flex items-center justify-between">
                     <span
                       className="tag"
                       style={{
-                        background: `${catColor}14`,
-                        color: catColor,
-                        border: `1px solid ${catColor}28`,
+                        background: colors.bg,
+                        color: colors.text,
+                        border: `1px solid ${colors.border}`,
                       }}
                     >
                       {doc.category}
@@ -212,8 +201,9 @@ export default function DocumentLibrary() {
                     <span
                       className="tag"
                       style={{
-                        background: FILE_TYPE_BG[ftType] || "rgba(255,255,255,0.06)",
-                        color: FILE_TYPE_COLOR[ftType] || "#94A3B8",
+                        background: "rgba(10,22,40,0.05)",
+                        color: "rgba(10,22,40,0.5)",
+                        fontFamily: "JetBrains Mono, monospace",
                       }}
                     >
                       {ftType}
@@ -221,31 +211,26 @@ export default function DocumentLibrary() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-white text-sm font-semibold leading-snug line-clamp-2 group-hover:text-[#00D4FF] transition-colors duration-150">
+                  <h3 className="text-navy text-sm font-semibold leading-snug line-clamp-2 group-hover:text-sky transition-colors duration-200">
                     {doc.title}
                   </h3>
 
                   {/* Footer */}
                   <div
                     className="mt-auto pt-3 flex items-center justify-between"
-                    style={{ borderTop: "1px solid var(--border)" }}
+                    style={{ borderTop: "1px solid rgba(10,22,40,0.08)" }}
                   >
                     <div>
-                      <p className="text-white text-xs font-medium truncate max-w-[120px]">
+                      <p className="text-navy text-xs font-medium truncate max-w-[120px]">
                         {doc.contributor}
                       </p>
-                      <p className="text-[var(--muted)] text-xs mt-0.5">
+                      <p className="text-navy/40 text-xs mt-0.5" style={{ fontFamily: "JetBrains Mono, monospace" }}>
                         {formatDate(doc.created_at)}
                       </p>
                     </div>
                     <button
                       onClick={() => handleDownload(doc)}
-                      className="cursor-pointer flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 hover:scale-105"
-                      style={{
-                        color: catColor,
-                        border: `1px solid ${catColor}28`,
-                        background: `${catColor}0a`,
-                      }}
+                      className="btn-primary !py-1.5 !px-3 !text-xs !gap-1.5"
                       aria-label={`Download ${doc.title}`}
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

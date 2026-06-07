@@ -4,132 +4,85 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 export default function StarField() {
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    const mount = mountRef.current;
+    if (!mount) return;
 
-    // Scene setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 2000);
     camera.position.z = 500;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
-    canvasRef.current.appendChild(renderer.domElement);
+    mount.appendChild(renderer.domElement);
 
-    // Stars — three layers for depth
-    const createStarLayer = (count: number, size: number, spread: number, color: number) => {
-      const geometry = new THREE.BufferGeometry();
-      const positions = new Float32Array(count * 3);
-      for (let i = 0; i < count * 3; i++) {
-        positions[i] = (Math.random() - 0.5) * spread;
-      }
-      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-      const material = new THREE.PointsMaterial({
-        color,
-        size,
-        transparent: true,
-        opacity: 0.85,
-        sizeAttenuation: true,
-      });
-      return new THREE.Points(geometry, material);
+    // Stars — dark navy dots against tan bg, very subtle
+    const makeStars = (count: number, spread: number, size: number, opacity: number, color: number) => {
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      for (let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * spread;
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({ color, size, transparent: true, opacity, sizeAttenuation: true });
+      return new THREE.Points(geo, mat);
     };
 
-    const stars1 = createStarLayer(3000, 1.2, 2000, 0xffffff);
-    const stars2 = createStarLayer(800, 2.0, 1500, 0x00d4ff);
-    const stars3 = createStarLayer(200, 2.8, 1200, 0x8b5cf6);
-    scene.add(stars1, stars2, stars3);
+    // Three layers: deep navy, mid navy, accent sky — all muted
+    const layer1 = makeStars(1800, 2200, 1.4, 0.18, 0x0A1628);
+    const layer2 = makeStars(600, 1600, 2.0, 0.12, 0x1B3A6B);
+    const layer3 = makeStars(150, 1200, 2.6, 0.15, 0x4A90D9);
+    scene.add(layer1, layer2, layer3);
 
-    // Nebula — soft glowing cloud using sprite
-    const createNebula = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 512;
-      const ctx = canvas.getContext("2d")!;
-      const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-      gradient.addColorStop(0, "rgba(0,80,120,0.4)");
-      gradient.addColorStop(0.3, "rgba(20,0,80,0.3)");
-      gradient.addColorStop(0.7, "rgba(0,30,60,0.1)");
-      gradient.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 512, 512);
-      const texture = new THREE.CanvasTexture(canvas);
-      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.4 });
-      const sprite = new THREE.Sprite(material);
-      sprite.scale.set(800, 800, 1);
-      sprite.position.set(-200, 100, -300);
-      return sprite;
-    };
-
-    const nebula1 = createNebula();
-    const nebula2 = createNebula();
-    nebula2.position.set(300, -150, -400);
-    scene.add(nebula1, nebula2);
-
-    // Subtle rotating galaxy plane
-    const galaxyGeo = new THREE.BufferGeometry();
-    const galaxyCount = 1500;
-    const galaxyPos = new Float32Array(galaxyCount * 3);
-    const galaxyColors = new Float32Array(galaxyCount * 3);
-    for (let i = 0; i < galaxyCount; i++) {
-      const radius = Math.random() * 300;
-      const spinAngle = radius * 3;
-      const branchAngle = ((i % 3) / 3) * Math.PI * 2;
-      const randomness = (Math.random() - 0.5) * radius * 0.1;
-      galaxyPos[i * 3] = Math.cos(branchAngle + spinAngle) * radius + randomness;
-      galaxyPos[i * 3 + 1] = randomness * 0.2;
-      galaxyPos[i * 3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomness - 400;
-      const mixRatio = radius / 300;
-      galaxyColors[i * 3] = 0.1 + mixRatio * 0.3;
-      galaxyColors[i * 3 + 1] = 0.3 + mixRatio * 0.2;
-      galaxyColors[i * 3 + 2] = 0.8 + mixRatio * 0.2;
+    // Subtle constellation lines
+    const lineGeo = new THREE.BufferGeometry();
+    const linePoints: number[] = [];
+    for (let i = 0; i < 12; i++) {
+      const x1 = (Math.random() - 0.5) * 800;
+      const y1 = (Math.random() - 0.5) * 400;
+      const x2 = x1 + (Math.random() - 0.5) * 120;
+      const y2 = y1 + (Math.random() - 0.5) * 120;
+      linePoints.push(x1, y1, -200, x2, y2, -200);
     }
-    galaxyGeo.setAttribute("position", new THREE.BufferAttribute(galaxyPos, 3));
-    galaxyGeo.setAttribute("color", new THREE.BufferAttribute(galaxyColors, 3));
-    const galaxyMat = new THREE.PointsMaterial({ size: 1.5, vertexColors: true, transparent: true, opacity: 0.6 });
-    const galaxy = new THREE.Points(galaxyGeo, galaxyMat);
-    scene.add(galaxy);
+    lineGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(linePoints), 3));
+    const lineMat = new THREE.LineSegments(
+      lineGeo,
+      new THREE.LineBasicMaterial({ color: 0x1B3A6B, transparent: true, opacity: 0.06 })
+    );
+    scene.add(lineMat);
 
-    // Mouse parallax
-    let mouseX = 0;
-    let mouseY = 0;
-    let targetX = 0;
-    let targetY = 0;
+    // Mouse parallax — very gentle
+    let mx = 0, my = 0, tx = 0, ty = 0;
     const onMouseMove = (e: MouseEvent) => {
-      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+      mx = (e.clientX / window.innerWidth - 0.5) * 20;
+      my = -(e.clientY / window.innerHeight - 0.5) * 20;
     };
     window.addEventListener("mousemove", onMouseMove);
 
-    // Animation
     let animId: number;
     const clock = new THREE.Clock();
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const elapsed = clock.getElapsedTime();
+      const t = clock.getElapsedTime();
 
-      targetX += (mouseX * 30 - targetX) * 0.05;
-      targetY += (-mouseY * 30 - targetY) * 0.05;
+      tx += (mx - tx) * 0.04;
+      ty += (my - ty) * 0.04;
 
-      stars1.rotation.y = elapsed * 0.02;
-      stars2.rotation.y = elapsed * 0.015;
-      stars3.rotation.y = elapsed * 0.01;
-      galaxy.rotation.y = elapsed * 0.008;
-      galaxy.rotation.x = Math.sin(elapsed * 0.1) * 0.1;
+      layer1.rotation.y = t * 0.008;
+      layer2.rotation.y = t * 0.005;
+      layer3.rotation.y = t * 0.003;
 
-      camera.position.x = targetX;
-      camera.position.y = targetY;
+      camera.position.x = tx;
+      camera.position.y = ty;
       camera.lookAt(scene.position);
 
       renderer.render(scene, camera);
     };
     animate();
 
-    // Resize handler
     const onResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -137,23 +90,21 @@ export default function StarField() {
     };
     window.addEventListener("resize", onResize);
 
-    const container = canvasRef.current;
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", onResize);
       renderer.dispose();
-      if (container?.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
+      if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
   }, []);
 
   return (
     <div
-      ref={canvasRef}
+      ref={mountRef}
       className="absolute inset-0 z-0"
       style={{ pointerEvents: "none" }}
+      aria-hidden="true"
     />
   );
 }

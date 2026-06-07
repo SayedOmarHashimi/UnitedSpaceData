@@ -14,81 +14,81 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 32);
+    const handler = () => setScrolled(window.scrollY > 24);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
   return (
     <motion.nav
-      initial={{ y: -60, opacity: 0 }}
+      initial={{ y: -56, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, delay: 1.6, ease: [0.22, 1, 0.36, 1] }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "border-b border-[var(--border)] backdrop-blur-xl bg-[rgba(2,4,8,0.85)]" : ""
-      }`}
+      transition={{ duration: 0.7, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        background: scrolled ? "rgba(245,240,232,0.96)" : "transparent",
+        borderBottom: scrolled ? "1px solid rgba(10,22,40,0.1)" : "1px solid transparent",
+        backdropFilter: scrolled ? "blur(8px)" : "none",
+        transition: "background 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease",
+      }}
     >
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="container-wide h-16 flex items-center justify-between">
         {/* Wordmark */}
-        <a
-          href="#"
-          className="cursor-pointer group flex items-center gap-2.5"
-          aria-label="United Space Data home"
-        >
-          {/* Minimal orbit mark */}
-          <div className="relative w-7 h-7 flex-shrink-0">
+        <a href="#" className="cursor-pointer flex items-center gap-2.5 group" aria-label="United Space Data">
+          {/* Minimal orbit glyph */}
+          <div className="relative w-6 h-6 flex-shrink-0">
             <div
-              className="absolute inset-0 rounded-full border border-[rgba(0,212,255,0.35)] group-hover:border-[rgba(0,212,255,0.65)] transition-colors duration-200"
-              style={{ animation: "orbitRing 8s linear infinite" }}
+              className="absolute inset-0 rounded-full border border-navy/20 group-hover:border-navy/40 transition-colors duration-300"
+              style={{ animation: "orbiting 10s linear infinite" }}
             />
-            <div className="absolute inset-[5px] rounded-full border border-[rgba(0,212,255,0.2)]" />
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className="w-1.5 h-1.5 rounded-full bg-[#00D4FF]"
-                style={{ animation: "pulseGlow 3s ease-in-out infinite" }}
+                className="w-1.5 h-1.5 rounded-full bg-navy/60 group-hover:bg-sky transition-colors duration-300"
+                style={{ animation: "pulseOpacity 3s ease-in-out infinite" }}
               />
             </div>
           </div>
           <span
-            className="text-white font-semibold text-sm tracking-wide"
-            style={{ fontFamily: "Orbitron, sans-serif" }}
+            className="font-bold text-sm tracking-wide text-navy"
+            style={{ letterSpacing: "0.04em" }}
           >
             United Space Data
           </span>
         </a>
 
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
+        {/* Desktop links */}
+        <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="px-4 py-2 text-sm text-[var(--muted-light)] hover:text-white transition-colors duration-150 cursor-pointer rounded-lg hover:bg-white/5"
-            >
+            <a key={link.label} href={link.href} className="nav-link cursor-pointer">
               {link.label}
             </a>
           ))}
-          <a
-            href="#upload"
-            className="btn-primary ml-4 !py-2.5 !px-5 text-xs"
-          >
+        </div>
+
+        {/* CTA */}
+        <div className="hidden md:block">
+          <a href="#upload" className="btn-primary !py-2.5 !px-5 !text-xs">
             Upload Data
           </a>
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Mobile toggle */}
         <button
-          className="md:hidden cursor-pointer w-9 h-9 flex items-center justify-center rounded-lg text-[var(--muted-light)] hover:text-white hover:bg-white/5 transition-all"
+          className="md:hidden cursor-pointer w-9 h-9 flex items-center justify-center rounded-lg text-navy hover:bg-navy/6 transition-colors"
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
         >
           {menuOpen ? (
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           ) : (
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h10" />
             </svg>
           )}
@@ -102,16 +102,17 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="md:hidden overflow-hidden border-t border-[var(--border)] bg-[rgba(2,4,8,0.95)] backdrop-blur-xl"
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="md:hidden overflow-hidden"
+            style={{ background: "rgba(245,240,232,0.98)", borderTop: "1px solid rgba(10,22,40,0.1)" }}
           >
-            <div className="px-6 py-4 flex flex-col gap-1">
+            <div className="container-wide py-4 flex flex-col gap-1">
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
-                  className="px-3 py-3 text-sm text-[var(--muted-light)] hover:text-white cursor-pointer rounded-lg hover:bg-white/5 transition-all"
+                  className="cursor-pointer py-3 px-2 text-sm font-medium text-navy hover:text-sky transition-colors border-b border-navy/6 last:border-0"
                 >
                   {link.label}
                 </a>
@@ -119,7 +120,7 @@ export default function Navbar() {
               <a
                 href="#upload"
                 onClick={() => setMenuOpen(false)}
-                className="btn-primary mt-2 justify-center"
+                className="btn-primary mt-3 justify-center"
               >
                 Upload Data
               </a>

@@ -11,57 +11,60 @@ const LINKS = [
 export default function Footer() {
   return (
     <footer className="px-6 pb-8 pt-2">
-      <div className="max-w-6xl mx-auto">
+      <div className="container-wide">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col sm:flex-row items-center justify-between gap-4 py-6"
-          style={{ borderTop: "1px solid var(--border)" }}
+          style={{ borderTop: "1px solid rgba(10,22,40,0.1)" }}
         >
           {/* Wordmark */}
           <a
             href="#"
-            className="cursor-pointer flex items-center gap-2 text-[var(--muted)] hover:text-white transition-colors duration-150"
+            className="cursor-pointer flex items-center gap-2 text-navy/40 hover:text-navy transition-colors duration-200"
             aria-label="United Space Data home"
           >
             <div className="relative w-5 h-5">
-              <div className="absolute inset-0 rounded-full border border-[rgba(0,212,255,0.3)]" />
+              <div
+                className="absolute inset-0 rounded-full border border-navy/20"
+                style={{ animation: "orbiting 12s linear infinite" }}
+              />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-1 h-1 rounded-full bg-[#00D4FF]" />
+                <div className="w-1 h-1 rounded-full bg-navy/40" />
               </div>
             </div>
-            <span className="text-xs font-medium tracking-wide" style={{ fontFamily: "Orbitron, sans-serif" }}>
+            <span className="text-xs font-semibold tracking-wide">
               United Space Data
             </span>
           </a>
 
-          {/* 3 links */}
+          {/* Nav links */}
           <nav className="flex items-center gap-6" aria-label="Footer navigation">
             {LINKS.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="cursor-pointer text-xs text-[var(--muted)] hover:text-white transition-colors duration-150"
+                className="cursor-pointer text-xs text-navy/40 hover:text-navy transition-colors duration-150"
               >
                 {link.label}
               </a>
             ))}
           </nav>
 
-          {/* Right: copyright + MIT */}
+          {/* Copyright + MIT */}
           <div className="flex items-center gap-3">
-            <p className="text-xs text-[var(--muted)]">
+            <p className="text-xs text-navy/35">
               © {new Date().getFullYear()} United Space Data
             </p>
             <span
               className="text-xs px-2 py-0.5 rounded"
               style={{
-                color: "#10B981",
-                background: "rgba(16,185,129,0.1)",
-                border: "1px solid rgba(16,185,129,0.2)",
-                fontFamily: "Roboto Mono, monospace",
+                color: "#2952A3",
+                background: "rgba(74,144,217,0.08)",
+                border: "1px solid rgba(74,144,217,0.2)",
+                fontFamily: "JetBrains Mono, monospace",
               }}
             >
               MIT

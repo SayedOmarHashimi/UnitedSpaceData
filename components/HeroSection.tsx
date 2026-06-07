@@ -13,56 +13,48 @@ export default function HeroSection() {
     >
       <StarField />
 
-      {/* Centered focal glow — single, restrained */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(ellipse, rgba(0,212,255,0.07) 0%, transparent 70%)" }}
-      />
-
       {/* Content */}
       <div className="relative z-10 text-center px-6 max-w-4xl mx-auto pt-16">
         {/* Label */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.0, duration: 0.5 }}
+          transition={{ delay: 2.0, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="flex items-center justify-center gap-2 mb-10"
         >
-          <div
-            className="w-1.5 h-1.5 rounded-full bg-[#00D4FF]"
-            style={{ animation: "pulseGlow 3s ease-in-out infinite" }}
-          />
+          <div className="w-1 h-1 rounded-full bg-sky" />
           <span className="section-label">Open Access Space Repository</span>
+          <div className="w-1 h-1 rounded-full bg-sky" />
         </motion.div>
 
-        {/* Headline — one powerful line */}
+        {/* Headline */}
         <motion.h1
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.2, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="text-[clamp(2.5rem,8vw,6rem)] font-black leading-[1.0] tracking-tight text-white mb-6"
-          style={{ fontFamily: "Orbitron, sans-serif" }}
+          transition={{ delay: 2.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="text-display font-bold text-navy mb-6"
         >
           Space knowledge,{" "}
-          <span className="gradient-text">open to all.</span>
+          <br className="hidden sm:block" />
+          <span className="text-navy-mid">open to all.</span>
         </motion.h1>
 
-        {/* Subline — single sentence */}
+        {/* Subline */}
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.5, duration: 0.5 }}
-          className="text-[var(--muted-light)] text-lg max-w-xl mx-auto mb-10 leading-relaxed"
+          transition={{ delay: 2.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="text-navy/55 text-lg max-w-xl mx-auto mb-10 leading-relaxed"
         >
-          Upload and discover space research, mission data, and astronomical observations
-          — freely shared with the global community.
+          Upload and discover space research, mission data, and astronomical
+          observations — freely shared with the global community.
         </motion.p>
 
-        {/* Two buttons only */}
+        {/* CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.7, duration: 0.5 }}
+          transition={{ delay: 2.7, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col sm:flex-row gap-3 justify-center"
         >
           <a href="#upload" className="btn-primary !py-3.5 !px-8 !text-sm">
@@ -71,7 +63,7 @@ export default function HeroSection() {
             </svg>
             Upload Data
           </a>
-          <a href="#library" className="btn-ghost !py-3.5 !px-8 !text-sm">
+          <a href="#library" className="btn-secondary !py-3.5 !px-8 !text-sm">
             Browse Archive
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -83,10 +75,10 @@ export default function HeroSection() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 3.4 }}
+          transition={{ delay: 3.2 }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5"
         >
-          <div className="w-px h-10 bg-gradient-to-b from-transparent via-[rgba(0,212,255,0.4)] to-transparent" />
+          <div className="w-px h-10 bg-gradient-to-b from-transparent via-navy/20 to-transparent" />
         </motion.div>
       </div>
     </section>

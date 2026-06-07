@@ -46,25 +46,21 @@ const METRICS = [
     key: "documents" as const,
     label: "Documents",
     format: (n: number) => Math.floor(n).toLocaleString(),
-    color: "#00D4FF",
   },
   {
     key: "contributors" as const,
     label: "Contributors",
     format: (n: number) => Math.floor(n).toLocaleString(),
-    color: "#7C3AED",
   },
   {
     key: "totalBytes" as const,
     label: "Data Stored",
     format: (n: number) => formatBytes(Math.floor(n)),
-    color: "#3B82F6",
   },
   {
     key: "countries" as const,
     label: "Countries",
     format: (n: number) => Math.floor(n).toLocaleString(),
-    color: "#10B981",
   },
 ];
 
@@ -85,15 +81,15 @@ export default function StatsSection() {
 
   return (
     <section id="stats" className="py-20 px-6" ref={ref}>
-      <div className="max-w-6xl mx-auto">
+      <div className="container-wide">
         <div className="divider mb-16" />
 
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 animate-pulse">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="text-center space-y-2">
-                <div className="h-10 w-24 mx-auto rounded-lg bg-white/6" />
-                <div className="h-3 w-16 mx-auto rounded bg-white/6" />
+                <div className="h-9 w-20 mx-auto rounded bg-navy/8" />
+                <div className="h-3 w-16 mx-auto rounded bg-navy/8" />
               </div>
             ))}
           </div>
@@ -106,7 +102,10 @@ export default function StatsSection() {
             transition={{ duration: 0.5 }}
             className="text-center py-4"
           >
-            <p className="text-[var(--muted)] text-sm" style={{ fontFamily: "Roboto Mono, monospace" }}>
+            <p
+              className="text-navy/45 text-sm"
+              style={{ fontFamily: "JetBrains Mono, monospace" }}
+            >
               No data yet — be the first to upload.
             </p>
             <a href="#upload" className="btn-primary mt-5 mx-auto">
@@ -116,23 +115,17 @@ export default function StatsSection() {
         )}
 
         {!loading && stats && stats.documents > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0">
             {METRICS.map((m, i) => (
               <motion.div
                 key={m.key}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
-                className="text-center"
+                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="text-center md:border-r md:last:border-r-0 border-navy/10 md:px-8"
               >
-                <div
-                  className="text-2xl md:text-4xl font-black mb-2"
-                  style={{
-                    fontFamily: "Orbitron, sans-serif",
-                    color: m.color,
-                  }}
-                >
+                <div className="text-2xl md:text-4xl font-bold text-navy mb-2 tracking-tight">
                   <AnimatedNumber
                     value={stats[m.key]}
                     format={m.format}
@@ -140,8 +133,8 @@ export default function StatsSection() {
                   />
                 </div>
                 <p
-                  className="text-xs tracking-wider uppercase"
-                  style={{ fontFamily: "Roboto Mono, monospace", color: "var(--muted)" }}
+                  className="text-xs tracking-[0.12em] uppercase text-navy/45"
+                  style={{ fontFamily: "JetBrains Mono, monospace" }}
                 >
                   {m.label}
                 </p>
