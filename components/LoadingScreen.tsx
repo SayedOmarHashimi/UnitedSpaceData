@@ -8,98 +8,70 @@ export default function LoadingScreen() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const id = setInterval(() => {
       setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setTimeout(() => setVisible(false), 400);
+        const next = p + Math.random() * 22 + 6;
+        if (next >= 100) {
+          clearInterval(id);
+          setTimeout(() => setVisible(false), 300);
           return 100;
         }
-        return p + Math.random() * 18 + 5;
+        return next;
       });
-    }, 120);
-    return () => clearInterval(interval);
+    }, 110);
+    return () => clearInterval(id);
   }, []);
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#030712]"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#020408]"
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          {/* Orbit rings */}
-          <div className="relative w-32 h-32 mb-8">
+          {/* Minimal orbit mark */}
+          <div className="relative w-20 h-20 mb-8">
             <div
               className="absolute inset-0 rounded-full border border-[rgba(0,212,255,0.2)]"
-              style={{ animation: "orbitRing 4s linear infinite" }}
+              style={{ animation: "orbitRing 5s linear infinite" }}
             />
             <div
-              className="absolute inset-4 rounded-full border border-[rgba(139,92,246,0.3)]"
+              className="absolute inset-3 rounded-full border border-[rgba(0,212,255,0.1)]"
               style={{ animation: "orbitRing 3s linear infinite reverse" }}
             />
-            <div
-              className="absolute inset-8 rounded-full border border-[rgba(0,212,255,0.5)]"
-              style={{ animation: "orbitRing 2s linear infinite" }}
-            />
-            {/* Center dot */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className="w-4 h-4 rounded-full bg-[#00D4FF]"
+                className="w-2.5 h-2.5 rounded-full bg-[#00D4FF]"
                 style={{
-                  boxShadow: "0 0 20px rgba(0,212,255,0.8), 0 0 40px rgba(0,212,255,0.4)",
-                  animation: "pulseGlow 1.5s ease-in-out infinite",
+                  boxShadow: "0 0 16px rgba(0,212,255,0.7)",
+                  animation: "pulseGlow 2s ease-in-out infinite",
                 }}
               />
             </div>
-            {/* Orbiting particle */}
-            <div
-              className="absolute top-1/2 left-1/2 w-2 h-2"
-              style={{
-                transform: "translate(-50%, -50%)",
-                animation: "orbitRing 2.5s linear infinite",
-              }}
-            >
-              <div className="w-2 h-2 rounded-full bg-[#8B5CF6]" />
-            </div>
           </div>
 
-          {/* Logo text */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-center mb-8"
+            className="text-white font-semibold text-sm tracking-widest mb-6"
+            style={{ fontFamily: "Orbitron, sans-serif" }}
           >
-            <h1
-              className="font-orbitron text-2xl font-bold tracking-widest"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              <span style={{ color: "#00D4FF" }}>UNITED</span>{" "}
-              <span className="text-white">SPACE</span>{" "}
-              <span style={{ color: "#8B5CF6" }}>DATA</span>
-            </h1>
-            <p className="text-[#94A3B8] text-xs tracking-[0.3em] mt-1 uppercase">
-              Initializing Archive Systems
-            </p>
-          </motion.div>
+            UNITED SPACE DATA
+          </motion.p>
 
-          {/* Progress bar */}
-          <div className="w-64 h-px bg-[rgba(255,255,255,0.1)] relative overflow-hidden">
+          {/* Progress track */}
+          <div className="w-40 h-px bg-white/8 overflow-hidden rounded-full">
             <motion.div
-              className="h-full"
+              className="h-full rounded-full"
               style={{
-                background: "linear-gradient(90deg, #00D4FF, #8B5CF6)",
-                boxShadow: "0 0 10px rgba(0,212,255,0.6)",
+                background: "linear-gradient(90deg, #00D4FF, #7C3AED)",
                 width: `${Math.min(progress, 100)}%`,
               }}
-              transition={{ duration: 0.1 }}
+              transition={{ duration: 0.08 }}
             />
           </div>
-          <p className="text-[#94A3B8] text-xs mt-2" style={{ fontFamily: "Roboto Mono, monospace" }}>
-            {Math.min(Math.round(progress), 100)}%
-          </p>
         </motion.div>
       )}
     </AnimatePresence>
