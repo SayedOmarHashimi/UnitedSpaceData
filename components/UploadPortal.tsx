@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatBytes } from "@/lib/utils";
-import { uploadFile, insertDocument } from "@/lib/supabase";
+import { uploadFile, insertDocument, validateFile, sanitizeFileName } from "@/lib/supabase";
 import { CATEGORIES, type DocumentCategory } from "@/types";
 
 type UploadState = "idle" | "uploading" | "success" | "error";
@@ -27,10 +27,16 @@ export default function UploadPortal() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const addFiles = useCallback((incoming: File[]) => {
-    setFiles((prev) => [
-      ...prev,
-      ...incoming.map((file) => ({ file, state: "idle" as const, progress: 0 })),
-    ]);
+    const entries = incoming.map((file) => {
+      try {
+        validateFile(file);
+        return { file, state: "idle" as const, progress: 0 };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Invalid file";
+        return { file, state: "error" as const, progress: 0, error: msg };
+      }
+    });
+    setFiles((prev) => [...prev, ...entries]);
   }, []);
 
   const handleDrop = useCallback(
@@ -57,16 +63,17 @@ export default function UploadPortal() {
         );
       });
 
+      const safeName = sanitizeFileName(entry.file.name);
       await insertDocument({
-        title: entry.file.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "),
+        title: safeName.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "),
         description: null,
         category,
         contributor: contributor.trim() || "Anonymous",
         country: null,
         file_url: publicUrl,
-        file_name: entry.file.name,
+        file_name: safeName,
         file_size: entry.file.size,
-        file_type: getFileType(entry.file.name),
+        file_type: getFileType(safeName),
       });
 
       setFiles((prev) =>
@@ -189,7 +196,7 @@ export default function UploadPortal() {
               type="file"
               multiple
               className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png,.csv,.json,.txt,.zip,.fits"
+              accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif,.bmp,.csv,.json,.txt,.zip,.tar,.gz,.bz2,.fits,.fit"
               onChange={(e) => e.target.files && addFiles(Array.from(e.target.files))}
             />
             <div className="flex flex-col items-center gap-3">
