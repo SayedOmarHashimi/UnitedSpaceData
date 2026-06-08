@@ -140,13 +140,28 @@ export async function uploadFile(
   return data.publicUrl;
 }
 
-/** Insert a document metadata row and return the new record. */
-export async function insertDocument(
-  payload: Omit<DbDocument, "id" | "created_at" | "download_count">
-): Promise<DbDocument> {
+/** Insert a document metadata row and return the new record.
+ *  Only the fields listed in SAFE_INSERT_FIELDS are forwarded to the DB.
+ *  This prevents prototype-pollution or extra fields from reaching the insert.
+ */
+const SAFE_INSERT_FIELDS = [
+  "title", "description", "category", "contributor",
+  "country", "file_url", "file_name", "file_size", "file_type",
+] as const;
+
+type InsertPayload = Omit<DbDocument, "id" | "created_at" | "download_count">;
+
+export async function insertDocument(payload: InsertPayload): Promise<DbDocument> {
+  // Whitelist-pick the columns we actually want to write
+  const safe = Object.fromEntries(
+    SAFE_INSERT_FIELDS
+      .filter((k) => k in payload)
+      .map((k) => [k, payload[k]])
+  );
+
   const { data, error } = await supabase
     .from("documents")
-    .insert(payload)
+    .insert(safe)
     .select()
     .single();
 
