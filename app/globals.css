@@ -25,7 +25,12 @@
 
 /* ── Reset & base ───────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; font-size: 16px; }
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+  /* Anchor jumps land below the fixed navbar */
+  scroll-padding-top: 88px;
+}
 
 body {
   background: var(--bg);
@@ -36,6 +41,29 @@ body {
   overflow-x: hidden;
   line-height: 1.6;
 }
+
+/* ── Accessibility ──────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: fixed;
+  top: -56px;
+  left: 16px;
+  z-index: 100;
+  padding: 10px 18px;
+  background: var(--navy);
+  color: var(--cream);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: top 0.25s var(--ease);
+}
+.skip-link:focus { top: 16px; }
 
 /* ── Scrollbar ──────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
@@ -189,6 +217,22 @@ h1, h2, h3, h4 {
   50%       { opacity: 1; }
 }
 
+/* Traveling dot inside the hero scroll indicator */
+@keyframes scrollDot {
+  0%   { transform: translateY(0);    opacity: 0; }
+  25%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { transform: translateY(26px); opacity: 0; }
+}
+
+/* Soft navy→sky gradient for headline accents — stays within palette */
+.text-gradient-navy {
+  background: linear-gradient(115deg, var(--navy-mid) 20%, var(--sky) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 /* Underline hover effect for nav links */
 .nav-link {
   position: relative;
@@ -210,6 +254,10 @@ h1, h2, h3, h4 {
 }
 .nav-link:hover { color: var(--navy-mid); }
 .nav-link:hover::after { width: 100%; }
+
+/* Scroll-spy active state — persistent underline */
+.nav-link.active { color: var(--navy-mid); }
+.nav-link.active::after { width: 100%; }
 
 /* ── Reduced motion ─────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {

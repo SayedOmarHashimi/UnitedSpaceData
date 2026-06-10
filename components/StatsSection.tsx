@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, animate } from "framer-motion";
 import { fetchStats } from "@/lib/supabase";
 import { formatBytes } from "@/lib/utils";
 
@@ -25,16 +25,12 @@ function AnimatedNumber({
 
   useEffect(() => {
     if (!active || value === 0) return;
-    const duration = 1400;
-    const steps = 48;
-    const inc = value / steps;
-    let cur = 0;
-    const id = setInterval(() => {
-      cur += inc;
-      if (cur >= value) { setDisplay(value); clearInterval(id); }
-      else setDisplay(cur);
-    }, duration / steps);
-    return () => clearInterval(id);
+    const controls = animate(0, value, {
+      duration: 1.6,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate: (v) => setDisplay(v),
+    });
+    return () => controls.stop();
   }, [active, value]);
 
   if (value === 0) return <span className="opacity-30">—</span>;

@@ -111,7 +111,16 @@ export default function UploadPortal() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="mb-10"
         >
-          <p className="section-label mb-3">Upload Portal</p>
+          <div className="flex items-center gap-3 mb-3">
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="h-px w-8 bg-sky/60 origin-left"
+            />
+            <p className="section-label">Upload Portal</p>
+          </div>
           <h2 className="text-headline font-bold text-navy mb-3">
             Contribute to Science
           </h2>
@@ -176,12 +185,15 @@ export default function UploadPortal() {
           </div>
 
           {/* Drop zone */}
-          <div
+          <motion.div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             onClick={() => inputRef.current?.click()}
-            className="cursor-pointer rounded-2xl p-10 text-center transition-all duration-200"
+            animate={{ scale: dragOver ? 1.015 : 1 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={{ scale: 1.005 }}
+            className="cursor-pointer rounded-2xl p-10 text-center transition-colors duration-200"
             style={{
               background: dragOver ? "rgba(74,144,217,0.05)" : "rgba(10,22,40,0.02)",
               border: `2px dashed ${dragOver ? "rgba(74,144,217,0.5)" : "rgba(10,22,40,0.18)"}`,
@@ -213,7 +225,7 @@ export default function UploadPortal() {
                 <p className="text-xs text-navy/40 mt-1">PDF · Images · CSV · JSON · FITS · ZIP</p>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* File list */}
           <AnimatePresence>
@@ -271,9 +283,20 @@ export default function UploadPortal() {
 
                     {/* State badge */}
                     {entry.state === "success" && (
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300 }}>
+                      <motion.div
+                        initial={{ scale: 0.6, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      >
                         <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          <motion.path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4.5 12.75l6 6 9-13.5"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 0.45, ease: "easeOut", delay: 0.1 }}
+                          />
                         </svg>
                       </motion.div>
                     )}

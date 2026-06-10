@@ -1,29 +1,62 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 
 const NAV_LINKS = [
-  { label: "Archive", href: "#library" },
-  { label: "Upload", href: "#upload" },
-  { label: "About", href: "#about" },
+  { label: "Archive", href: "#library", id: "library" },
+  { label: "Upload", href: "#upload", id: "upload" },
+  { label: "About", href: "#about", id: "about" },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
+  const entered = useRef(false);
 
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const prev = scrollY.getPrevious() ?? 0;
+    setScrolled(latest > 24);
+    // Hide when scrolling down past the hero, reveal on any upward scroll
+    if (latest > prev && latest > 400 && !menuOpen) setHidden(true);
+    else setHidden(false);
+  });
+
+  // Scroll spy — highlight the nav link for the section in view
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 24);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
+    const sections = ["hero", "library", "upload", "about"]
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => Boolean(el));
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id === "hero" ? "" : entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-35% 0px -55% 0px" }
+    );
+
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
   }, []);
 
   return (
     <motion.nav
-      initial={{ y: -56, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.7, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ y: -80, opacity: 0 }}
+      animate={{ y: hidden ? -90 : 0, opacity: hidden ? 0 : 1 }}
+      transition={
+        entered.current
+          ? { duration: 0.45, ease: [0.22, 1, 0.36, 1] }
+          : { duration: 0.7, delay: 1.4, ease: [0.22, 1, 0.36, 1] }
+      }
+      onAnimationComplete={() => { entered.current = true; }}
       style={{
         position: "fixed",
         top: 0,
@@ -63,7 +96,11 @@ export default function Navbar() {
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((link) => (
-            <a key={link.label} href={link.href} className="nav-link cursor-pointer">
+            <a
+              key={link.label}
+              href={link.href}
+              className={`nav-link cursor-pointer ${activeSection === link.id ? "active" : ""}`}
+            >
               {link.label}
             </a>
           ))}
@@ -107,15 +144,18 @@ export default function Navbar() {
             style={{ background: "rgba(245,240,232,0.98)", borderTop: "1px solid rgba(10,22,40,0.1)" }}
           >
             <div className="container-wide py-4 flex flex-col gap-1">
-              {NAV_LINKS.map((link) => (
-                <a
+              {NAV_LINKS.map((link, i) => (
+                <motion.a
                   key={link.label}
                   href={link.href}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.06, duration: 0.3 }}
                   onClick={() => setMenuOpen(false)}
                   className="cursor-pointer py-3 px-2 text-sm font-medium text-navy hover:text-sky transition-colors border-b border-navy/6 last:border-0"
                 >
                   {link.label}
-                </a>
+                </motion.a>
               ))}
               <a
                 href="#upload"

@@ -31,7 +31,16 @@ export default function AboutSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className="section-label mb-4">About</p>
+            <div className="flex items-center gap-3 mb-4">
+              <motion.div
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className="h-px w-8 bg-sky/60 origin-left"
+              />
+              <p className="section-label">About</p>
+            </div>
             <h2 className="text-headline font-bold text-navy leading-tight mb-6">
               Built for the global<br />
               space community.
@@ -58,15 +67,18 @@ export default function AboutSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="flex gap-5 py-5"
+                whileHover={{ x: 4 }}
+                className="group flex gap-5 py-5"
                 style={{ borderBottom: i < PRINCIPLES.length - 1 ? "1px solid rgba(10,22,40,0.08)" : "none" }}
               >
                 <div
-                  className="w-0.5 rounded-full flex-shrink-0 mt-1 self-stretch"
+                  className="w-0.5 rounded-full flex-shrink-0 mt-1 self-stretch transition-all duration-300 group-hover:w-1"
                   style={{ background: "linear-gradient(to bottom, #4A90D9, #2952A3)" }}
                 />
                 <div>
-                  <h3 className="text-navy font-semibold text-sm mb-1.5">{p.title}</h3>
+                  <h3 className="text-navy font-semibold text-sm mb-1.5 transition-colors duration-300 group-hover:text-navy-mid">
+                    {p.title}
+                  </h3>
                   <p className="text-navy/55 text-sm leading-relaxed">{p.body}</p>
                 </div>
               </motion.div>

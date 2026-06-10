@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { fetchDocuments, incrementDownload, type DbDocument } from "@/lib/supabase";
 import { CATEGORIES, type DocumentCategory } from "@/types";
 import { formatBytes, formatDate } from "@/lib/utils";
@@ -98,7 +98,16 @@ export default function DocumentLibrary() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="mb-10"
         >
-          <p className="section-label mb-3">Document Archive</p>
+          <div className="flex items-center gap-3 mb-3">
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="h-px w-8 bg-sky/60 origin-left"
+            />
+            <p className="section-label">Document Archive</p>
+          </div>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="flex items-center gap-3">
               <h2 className="text-headline font-bold text-navy">Browse the Archive</h2>
@@ -212,16 +221,18 @@ export default function DocumentLibrary() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <AnimatePresence mode="popLayout">
             {filtered.map((doc, idx) => {
               const colors = CATEGORY_COLORS[doc.category] ?? FALLBACK_COLORS;
               const ftType = doc.file_type ?? "FILE";
               return (
                 <motion.div
                   key={doc.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: idx * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                  layout
+                  initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.2 } }}
+                  transition={{ duration: 0.45, delay: Math.min(idx * 0.04, 0.3), ease: [0.22, 1, 0.36, 1] }}
                   className="card group cursor-default p-5 flex flex-col gap-4"
                   style={{ background: "#FDFAF5" }}
                 >
@@ -267,20 +278,25 @@ export default function DocumentLibrary() {
                         {formatDate(doc.created_at)}
                       </p>
                     </div>
-                    <button
+                    <motion.button
                       onClick={() => handleDownload(doc)}
-                      className="btn-primary !py-1.5 !px-3 !text-xs !gap-1.5"
+                      className="btn-primary !py-1.5 !px-3 !text-xs !gap-1.5 group/dl"
+                      whileTap={{ scale: 0.94 }}
                       aria-label={`Download ${doc.title}`}
                     >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <svg
+                        className="w-3.5 h-3.5 transition-transform duration-300 group-hover/dl:translate-y-0.5"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
                       {doc.file_size ? formatBytes(doc.file_size) : "Download"}
-                    </button>
+                    </motion.button>
                   </div>
                 </motion.div>
               );
             })}
+            </AnimatePresence>
           </div>
         )}
       </div>
