@@ -237,7 +237,6 @@ export default function DocumentLibrary() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="mb-8"
         >
-<<<<<<< HEAD
           <div className="flex items-center gap-3 mb-3">
             <motion.div
               initial={{ scaleX: 0 }}
@@ -248,27 +247,6 @@ export default function DocumentLibrary() {
             />
             <p className="section-label">Document Archive</p>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <h2 className="text-headline font-bold text-navy">Browse the Archive</h2>
-              <button
-                onClick={loadDocuments}
-                disabled={loading}
-                className="cursor-pointer p-1.5 rounded-lg text-navy/40 hover:text-navy hover:bg-navy/5 transition-colors disabled:opacity-30"
-                aria-label="Refresh archive"
-                title="Refresh"
-              >
-                <svg
-                  className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
-            </div>
-            <div className="relative max-w-xs w-full">
-=======
-          <p className="section-label mb-3">Document Archive</p>
           <h2 className="text-headline font-bold text-navy">Browse the Archive</h2>
         </motion.div>
 
@@ -284,7 +262,6 @@ export default function DocumentLibrary() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             {/* Search */}
             <div className="relative flex-1">
->>>>>>> 5749f33 (feat: implement Archive Console (Direction B) in DocumentLibrary)
               <svg
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-navy/35"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -530,7 +507,7 @@ export default function DocumentLibrary() {
                     className="cursor-pointer flex items-center gap-1"
                     style={{ fontSize: "0.64rem", fontWeight: 600, padding: "3px 8px", borderRadius: 5, background: "rgba(10,22,40,0.05)", color: "rgba(10,22,40,0.5)", border: "1px solid rgba(10,22,40,0.12)" }}
                   >
-                    "{search}"
+                    &ldquo;{search}&rdquo;
                     <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -626,14 +603,9 @@ export default function DocumentLibrary() {
                             borderBottom: "1px solid rgba(10,22,40,0.05)",
                             alignItems: "center",
                             cursor: "pointer",
-                            transition: "background 0.15s ease",
-                          }}
-                          onHoverStart={(e) => {
-                            (e.target as HTMLElement).closest("[data-row]")?.setAttribute("data-hover", "1");
                           }}
                           whileHover={{ backgroundColor: "rgba(74,144,217,0.04)" }}
                           onClick={() => handleDownload(doc)}
-                          data-row
                         >
                           {/* File type chip */}
                           <span
@@ -781,10 +753,10 @@ export default function DocumentLibrary() {
                           <motion.div
                             key={doc.id}
                             layout
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.96 }}
-                            transition={{ duration: 0.3, delay: idx < 12 ? idx * 0.03 : 0, ease: [0.22, 1, 0.36, 1] }}
+                            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.2 } }}
+                            transition={{ duration: 0.45, delay: Math.min(idx * 0.04, 0.3), ease: [0.22, 1, 0.36, 1] }}
                             className="card group cursor-default p-5 flex flex-col gap-4"
                             style={{ background: "#FDFAF5" }}
                           >
@@ -809,16 +781,20 @@ export default function DocumentLibrary() {
                                   {formatDate(doc.created_at)}
                                 </p>
                               </div>
-                              <button
+                              <motion.button
                                 onClick={() => handleDownload(doc)}
-                                className="btn-primary !py-1.5 !px-3 !text-xs !gap-1.5"
+                                className="btn-primary !py-1.5 !px-3 !text-xs !gap-1.5 group/dl"
+                                whileTap={{ scale: 0.94 }}
                                 aria-label={`Download ${doc.title}`}
                               >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <svg
+                                  className="w-3.5 h-3.5 transition-transform duration-300 group-hover/dl:translate-y-0.5"
+                                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                                >
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
                                 {doc.file_size ? formatBytes(doc.file_size) : "Download"}
-                              </button>
+                              </motion.button>
                             </div>
                           </motion.div>
                         );
@@ -829,90 +805,7 @@ export default function DocumentLibrary() {
               </>
             )}
           </div>
-<<<<<<< HEAD
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <AnimatePresence mode="popLayout">
-            {filtered.map((doc, idx) => {
-              const colors = CATEGORY_COLORS[doc.category] ?? FALLBACK_COLORS;
-              const ftType = doc.file_type ?? "FILE";
-              return (
-                <motion.div
-                  key={doc.id}
-                  layout
-                  initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.2 } }}
-                  transition={{ duration: 0.45, delay: Math.min(idx * 0.04, 0.3), ease: [0.22, 1, 0.36, 1] }}
-                  className="card group cursor-default p-5 flex flex-col gap-4"
-                  style={{ background: "#FDFAF5" }}
-                >
-                  {/* Top: category + file type */}
-                  <div className="flex items-center justify-between">
-                    <span
-                      className="tag"
-                      style={{
-                        background: colors.bg,
-                        color: colors.text,
-                        border: `1px solid ${colors.border}`,
-                      }}
-                    >
-                      {doc.category}
-                    </span>
-                    <span
-                      className="tag"
-                      style={{
-                        background: "rgba(10,22,40,0.05)",
-                        color: "rgba(10,22,40,0.5)",
-                        fontFamily: "JetBrains Mono, monospace",
-                      }}
-                    >
-                      {ftType}
-                    </span>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-navy text-sm font-semibold leading-snug line-clamp-2 group-hover:text-sky transition-colors duration-200">
-                    {doc.title}
-                  </h3>
-
-                  {/* Footer */}
-                  <div
-                    className="mt-auto pt-3 flex items-center justify-between"
-                    style={{ borderTop: "1px solid rgba(10,22,40,0.08)" }}
-                  >
-                    <div>
-                      <p className="text-navy text-xs font-medium truncate max-w-[120px]">
-                        {doc.contributor}
-                      </p>
-                      <p className="text-navy/40 text-xs mt-0.5" style={{ fontFamily: "JetBrains Mono, monospace" }}>
-                        {formatDate(doc.created_at)}
-                      </p>
-                    </div>
-                    <motion.button
-                      onClick={() => handleDownload(doc)}
-                      className="btn-primary !py-1.5 !px-3 !text-xs !gap-1.5 group/dl"
-                      whileTap={{ scale: 0.94 }}
-                      aria-label={`Download ${doc.title}`}
-                    >
-                      <svg
-                        className="w-3.5 h-3.5 transition-transform duration-300 group-hover/dl:translate-y-0.5"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      {doc.file_size ? formatBytes(doc.file_size) : "Download"}
-                    </motion.button>
-                  </div>
-                </motion.div>
-              );
-            })}
-            </AnimatePresence>
-          </div>
-        )}
-=======
         </div>
->>>>>>> 5749f33 (feat: implement Archive Console (Direction B) in DocumentLibrary)
       </div>
     </section>
   );
