@@ -15,7 +15,10 @@ create table if not exists documents (
                              )),
   contributor   text         not null check (char_length(contributor) between 1 and 200),
   country       text                  check (char_length(country)     <= 100),
-  file_url      text         not null check (char_length(file_url)    <= 2000),
+  file_url      text         not null check (
+                               char_length(file_url) <= 2000
+                               and file_url like 'https://%'
+                             ),
   file_name     text                  check (char_length(file_name)   <= 255),
   file_size     bigint                check (file_size > 0 and file_size <= 524288000), -- 500 MB max
   file_type     text                  check (file_type in (
@@ -26,6 +29,76 @@ create table if not exists documents (
   download_count integer      not null default 0 check (download_count >= 0),
   created_at    timestamptz  not null default now()
 );
+
+-- ── Migration: apply constraints to a pre-existing table ─────────────────────
+-- CREATE TABLE IF NOT EXISTS is a no-op when the table already exists, so the
+-- inline CHECK constraints above never reach a database created from an older
+-- version of this schema. This block adds them retroactively.
+--
+-- NOTE: each ALTER fails if existing rows violate the constraint. Check first:
+--   select * from documents where category not in ('Astronomy','Missions',
+--     'Satellites','Deep Space','Earth Observation','Research');
+-- and fix or delete offending rows before re-running.
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'documents_title_check') then
+    alter table documents add constraint documents_title_check
+      check (char_length(title) between 1 and 500);
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'documents_description_check') then
+    alter table documents add constraint documents_description_check
+      check (char_length(description) <= 2000);
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'documents_category_check') then
+    alter table documents add constraint documents_category_check
+      check (category in (
+        'Astronomy', 'Missions', 'Satellites',
+        'Deep Space', 'Earth Observation', 'Research'
+      ));
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'documents_contributor_check') then
+    alter table documents add constraint documents_contributor_check
+      check (char_length(contributor) between 1 and 200);
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'documents_country_check') then
+    alter table documents add constraint documents_country_check
+      check (char_length(country) <= 100);
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'documents_file_url_check') then
+    alter table documents add constraint documents_file_url_check
+      check (char_length(file_url) <= 2000 and file_url like 'https://%');
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'documents_file_name_check') then
+    alter table documents add constraint documents_file_name_check
+      check (char_length(file_name) <= 255);
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'documents_file_size_check') then
+    alter table documents add constraint documents_file_size_check
+      check (file_size > 0 and file_size <= 524288000); -- 500 MB max
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'documents_file_type_check') then
+    alter table documents add constraint documents_file_type_check
+      check (file_type in (
+        'PDF', 'JPG', 'JPEG', 'PNG', 'GIF', 'WEBP',
+        'TIFF', 'TIF', 'BMP', 'CSV', 'JSON', 'TXT',
+        'ZIP', 'TAR', 'GZ', 'BZ2', 'FITS', 'FIT', 'FILE'
+      ));
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'documents_download_count_check') then
+    alter table documents add constraint documents_download_count_check
+      check (download_count >= 0);
+  end if;
+end $$;
 
 -- ── Row Level Security ────────────────────────────────────────────────────────
 
@@ -41,6 +114,7 @@ begin
     create policy "anon_select"
       on documents
       for select
+      to anon, authenticated
       using (true);
   end if;
 end $$;
@@ -56,6 +130,7 @@ begin
     create policy "anon_insert"
       on documents
       for insert
+      to anon, authenticated
       with check (true);
   end if;
 end $$;
