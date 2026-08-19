@@ -22,8 +22,12 @@ function getFileType(name: string): string {
 export default function UploadPortal() {
   const [dragOver, setDragOver] = useState(false);
   const [files, setFiles] = useState<FileEntry[]>([]);
+  const [title, setTitle] = useState("");
   const [category, setCategory] = useState<DocumentCategory>("Research");
   const [contributor, setContributor] = useState("");
+  const [description, setDescription] = useState("");
+  const [country, setCountry] = useState("");
+  const [showMore, setShowMore] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const addFiles = useCallback((incoming: File[]) => {
@@ -64,12 +68,13 @@ export default function UploadPortal() {
       });
 
       const safeName = sanitizeFileName(entry.file.name);
+      const autoTitle = safeName.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ");
       await insertDocument({
-        title: safeName.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "),
-        description: null,
+        title: title.trim() || autoTitle,
+        description: description.trim() || null,
         category,
         contributor: contributor.trim() || "Anonymous",
-        country: null,
+        country: country.trim() || null,
         file_url: publicUrl,
         file_name: safeName,
         file_size: entry.file.size,
@@ -136,6 +141,68 @@ export default function UploadPortal() {
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           className="space-y-5"
         >
+          {/* Drop zone */}
+          <motion.div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+            onClick={() => inputRef.current?.click()}
+            animate={{ scale: dragOver ? 1.015 : 1 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={{ scale: 1.005 }}
+            className="cursor-pointer rounded-2xl p-10 text-center transition-colors duration-200"
+            style={{
+              background: dragOver ? "rgba(74,144,217,0.05)" : "rgba(10,22,40,0.02)",
+              border: `2px dashed ${dragOver ? "rgba(74,144,217,0.5)" : "rgba(10,22,40,0.18)"}`,
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Drop files or click to upload"
+            onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              multiple
+              className="hidden"
+              accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif,.bmp,.csv,.json,.txt,.zip,.tar,.gz,.bz2,.fits,.fit"
+              onChange={(e) => e.target.files && addFiles(Array.from(e.target.files))}
+            />
+            <div className="flex flex-col items-center gap-3">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(74,144,217,0.08)", border: "1px solid rgba(74,144,217,0.2)" }}
+              >
+                <svg className="w-5 h-5 text-sky" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.05 11.095H6.75z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-navy">Drop files or click to browse</p>
+                <p className="text-xs text-navy/40 mt-1">PDF · Images · CSV · JSON · FITS · ZIP</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Title */}
+          <div>
+            <label
+              htmlFor="title"
+              className="block text-xs text-navy/45 mb-2"
+              style={{ fontFamily: "JetBrains Mono, monospace" }}
+            >
+              Title
+            </label>
+            <input
+              id="title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Voyager 1 trajectory data"
+              className="input"
+            />
+          </div>
+
           {/* Category */}
           <div>
             <label
@@ -184,48 +251,68 @@ export default function UploadPortal() {
             />
           </div>
 
-          {/* Drop zone */}
-          <motion.div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
-            animate={{ scale: dragOver ? 1.015 : 1 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            whileHover={{ scale: 1.005 }}
-            className="cursor-pointer rounded-2xl p-10 text-center transition-colors duration-200"
-            style={{
-              background: dragOver ? "rgba(74,144,217,0.05)" : "rgba(10,22,40,0.02)",
-              border: `2px dashed ${dragOver ? "rgba(74,144,217,0.5)" : "rgba(10,22,40,0.18)"}`,
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label="Drop files or click to upload"
-            onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              multiple
-              className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif,.bmp,.csv,.json,.txt,.zip,.tar,.gz,.bz2,.fits,.fit"
-              onChange={(e) => e.target.files && addFiles(Array.from(e.target.files))}
-            />
-            <div className="flex flex-col items-center gap-3">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(74,144,217,0.08)", border: "1px solid rgba(74,144,217,0.2)" }}
+          {/* Optional details — hidden by default to keep the primary flow simple */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowMore((v) => !v)}
+              aria-expanded={showMore}
+              className="cursor-pointer flex items-center gap-1.5 text-xs text-navy/45 hover:text-navy transition-colors"
+              style={{ fontFamily: "JetBrains Mono, monospace" }}
+            >
+              <svg
+                className="w-3.5 h-3.5 transition-transform duration-200"
+                style={{ transform: showMore ? "rotate(90deg)" : "none" }}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
               >
-                <svg className="w-5 h-5 text-sky" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.05 11.095H6.75z" />
-                </svg>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+              Add more details
+            </button>
+
+            {showMore && (
+              <div className="space-y-5 mt-4">
+                {/* Description */}
+                <div>
+                  <label
+                    htmlFor="description"
+                    className="block text-xs text-navy/45 mb-2"
+                    style={{ fontFamily: "JetBrains Mono, monospace" }}
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="What does this document contain?"
+                    rows={3}
+                    className="input"
+                    style={{ resize: "vertical" }}
+                  />
+                </div>
+
+                {/* Country */}
+                <div>
+                  <label
+                    htmlFor="country"
+                    className="block text-xs text-navy/45 mb-2"
+                    style={{ fontFamily: "JetBrains Mono, monospace" }}
+                  >
+                    Country
+                  </label>
+                  <input
+                    id="country"
+                    type="text"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    placeholder="e.g. USA"
+                    className="input"
+                  />
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-navy">Drop files or click to browse</p>
-                <p className="text-xs text-navy/40 mt-1">PDF · Images · CSV · JSON · FITS · ZIP</p>
-              </div>
-            </div>
-          </motion.div>
+            )}
+          </div>
 
           {/* File list */}
           <AnimatePresence>
