@@ -127,10 +127,10 @@ export default function UploadPortal() {
             <p className="section-label">Upload Portal</p>
           </div>
           <h2 className="text-headline font-bold text-navy mb-3">
-            Contribute to Science
+            Share a document
           </h2>
           <p className="text-navy/55 text-sm leading-relaxed">
-            Share research papers, mission files, datasets, and images with the global space community.
+            Anyone can contribute — no sign-up required.
           </p>
         </motion.div>
 

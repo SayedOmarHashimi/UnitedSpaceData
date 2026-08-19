@@ -53,23 +53,10 @@ export default function Footer() {
             ))}
           </nav>
 
-          {/* Copyright + MIT */}
-          <div className="flex items-center gap-3">
-            <p className="text-xs text-navy/35">
-              © {new Date().getFullYear()} United Space Data
-            </p>
-            <span
-              className="text-xs px-2 py-0.5 rounded"
-              style={{
-                color: "#2952A3",
-                background: "rgba(74,144,217,0.08)",
-                border: "1px solid rgba(74,144,217,0.2)",
-                fontFamily: "JetBrains Mono, monospace",
-              }}
-            >
-              MIT
-            </span>
-          </div>
+          {/* Copyright */}
+          <p className="text-xs text-navy/35">
+            © {new Date().getFullYear()} United Space Data
+          </p>
         </motion.div>
       </div>
     </footer>

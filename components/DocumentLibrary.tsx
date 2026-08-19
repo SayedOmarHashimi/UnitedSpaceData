@@ -29,12 +29,12 @@ function Skeleton({ view }: { view: ViewMode }) {
   if (view === "console") {
     return (
       <div className="animate-pulse" style={{ padding: "14px 28px", borderBottom: "1px solid rgba(10,22,40,0.06)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "44px 1fr 150px 78px 120px 90px", gap: "14px", alignItems: "center" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "44px 1fr 150px 78px 70px 90px", gap: "14px", alignItems: "center" }}>
           <div className="h-4 w-8 rounded bg-navy/6" />
           <div className="h-4 w-3/4 rounded bg-navy/6" />
           <div className="h-4 w-24 rounded bg-navy/6" />
           <div className="h-4 w-12 rounded bg-navy/6" />
-          <div className="h-3 w-full rounded-full bg-navy/6" />
+          <div className="h-4 w-8 rounded bg-navy/6" />
           <div className="h-4 w-16 rounded bg-navy/6" />
         </div>
       </div>
@@ -122,7 +122,6 @@ export default function DocumentLibrary() {
     setError(null);
     try {
       const rows = await fetchDocuments();
-      console.log("[DocumentLibrary] fetched", rows.length, "documents", rows);
       setDocs(rows);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -186,8 +185,6 @@ export default function DocumentLibrary() {
     });
     return arr;
   }, [filtered, sortKey, sortDir]);
-
-  const maxDownloads = useMemo(() => Math.max(...docs.map((d) => d.download_count), 1), [docs]);
 
   const handleDownload = async (doc: DbDocument) => {
     incrementDownload(doc.id).catch(() => {});
@@ -256,8 +253,7 @@ export default function DocumentLibrary() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="card mb-6"
-          style={{ padding: "26px 32px" }}
+          className="mb-6"
         >
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             {/* Search */}
@@ -278,10 +274,6 @@ export default function DocumentLibrary() {
                 style={{ fontSize: "0.9rem" }}
                 aria-label="Search archive"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-0.5">
-                <kbd style={{ padding: "3px 7px", borderRadius: 5, background: "rgba(10,22,40,0.06)", border: "1px solid rgba(10,22,40,0.12)", fontSize: "0.7rem", fontFamily: "JetBrains Mono, monospace", color: "rgba(10,22,40,0.4)" }}>⌘</kbd>
-                <kbd style={{ padding: "3px 7px", borderRadius: 5, background: "rgba(10,22,40,0.06)", border: "1px solid rgba(10,22,40,0.12)", fontSize: "0.7rem", fontFamily: "JetBrains Mono, monospace", color: "rgba(10,22,40,0.4)" }}>K</kbd>
-              </div>
             </div>
 
             {/* View switcher */}
@@ -293,19 +285,18 @@ export default function DocumentLibrary() {
                 <button
                   key={opt.id}
                   onClick={() => setViewPersisted(opt.id)}
-                  className="cursor-pointer flex items-center gap-1.5 transition-all duration-200"
+                  className="cursor-pointer flex items-center transition-all duration-200"
                   style={{
-                    padding: "7px 14px",
+                    padding: "8px 12px",
                     borderRadius: 7,
-                    fontSize: "0.78rem",
-                    fontWeight: 600,
                     background: view === opt.id ? "#0A1628" : "transparent",
                     color: view === opt.id ? "#FDFAF5" : "rgba(10,22,40,0.45)",
                   }}
                   aria-pressed={view === opt.id}
+                  aria-label={`${opt.label} view`}
+                  title={opt.label}
                 >
                   {opt.icon}
-                  {opt.label}
                 </button>
               ))}
             </div>
@@ -342,8 +333,8 @@ export default function DocumentLibrary() {
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="hidden lg:block flex-shrink-0 card"
-              style={{ width: 230, padding: "24px 22px" }}
+              className="hidden lg:block flex-shrink-0"
+              style={{ width: 210, paddingTop: 4 }}
             >
               {/* Categories */}
               <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.16em", color: "rgba(10,22,40,0.4)", marginBottom: 12, textTransform: "uppercase" }}>
@@ -523,11 +514,10 @@ export default function DocumentLibrary() {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "44px 1fr 150px 78px 120px 90px",
+                    gridTemplateColumns: "44px 1fr 150px 78px 70px 90px",
                     gap: "14px",
                     padding: "12px 28px",
                     borderBottom: "1px solid rgba(10,22,40,0.08)",
-                    background: "rgba(10,22,40,0.02)",
                   }}
                 >
                   {[
@@ -597,7 +587,7 @@ export default function DocumentLibrary() {
                           className="group"
                           style={{
                             display: "grid",
-                            gridTemplateColumns: "44px 1fr 150px 78px 120px 90px",
+                            gridTemplateColumns: "44px 1fr 150px 78px 70px 90px",
                             gap: "14px",
                             padding: "14px 28px",
                             borderBottom: "1px solid rgba(10,22,40,0.05)",
@@ -681,33 +671,17 @@ export default function DocumentLibrary() {
                             {doc.file_size ? formatBytes(doc.file_size) : "—"}
                           </span>
 
-                          {/* Downloads bar */}
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="flex-1 rounded-full overflow-hidden"
-                              style={{ height: 5, background: "rgba(10,22,40,0.08)" }}
-                            >
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${Math.round((doc.download_count / maxDownloads) * 100)}%`,
-                                  background: "#4A90D9",
-                                }}
-                              />
-                            </div>
-                            <span
-                              style={{
-                                fontSize: "0.68rem",
-                                fontWeight: 600,
-                                color: "#1B3A6B",
-                                minWidth: 22,
-                                textAlign: "right",
-                                fontFamily: "JetBrains Mono, monospace",
-                              }}
-                            >
-                              {doc.download_count}
-                            </span>
-                          </div>
+                          {/* Downloads */}
+                          <span
+                            style={{
+                              fontSize: "0.68rem",
+                              fontWeight: 600,
+                              color: "#1B3A6B",
+                              fontFamily: "JetBrains Mono, monospace",
+                            }}
+                          >
+                            {doc.download_count}
+                          </span>
 
                           {/* Date */}
                           <span
