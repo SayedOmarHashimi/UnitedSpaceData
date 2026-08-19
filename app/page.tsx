@@ -1,7 +1,6 @@
 import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import StatsSection from "@/components/StatsSection";
 import DocumentLibrary from "@/components/DocumentLibrary";
 import UploadPortal from "@/components/UploadPortal";
 import AboutSection from "@/components/AboutSection";
@@ -20,7 +19,6 @@ export default function Home() {
       <Navbar />
       <main id="main">
         <HeroSection />
-        <StatsSection />
         <DocumentLibrary />
         <UploadPortal />
         <AboutSection />

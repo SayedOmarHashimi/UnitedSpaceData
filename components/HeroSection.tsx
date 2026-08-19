@@ -3,13 +3,25 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import dynamic from "next/dynamic";
+import { CATEGORIES } from "@/types";
 
 const StarField = dynamic(() => import("./StarField"), { ssr: false });
 
-const LINE_1 = ["Space", "knowledge,"];
-const LINE_2 = ["open", "to", "all."];
+const LINE_1 = ["Space", "data,"];
+const LINE_2 = ["open", "to", "everyone."];
 const WORD_BASE_DELAY = 2.1;
 const WORD_STAGGER = 0.09;
+
+// Per-category tag colors — mirrors DocumentLibrary's palette (navy/sky/sand tokens)
+const TAG_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  Astronomy:           { bg: "rgba(74,144,217,0.08)", text: "#2952A3", border: "rgba(74,144,217,0.25)" },
+  Missions:            { bg: "rgba(27,58,107,0.08)",  text: "#1B3A6B", border: "rgba(27,58,107,0.2)" },
+  Satellites:          { bg: "rgba(41,82,163,0.08)",  text: "#2952A3", border: "rgba(41,82,163,0.2)" },
+  "Deep Space":        { bg: "rgba(10,22,40,0.06)",   text: "#0A1628", border: "rgba(10,22,40,0.15)" },
+  "Earth Observation": { bg: "rgba(74,144,217,0.1)",  text: "#2F6BB8", border: "rgba(74,144,217,0.3)" },
+  Research:            { bg: "rgba(27,58,107,0.07)",  text: "#1B3A6B", border: "rgba(27,58,107,0.18)" },
+};
+const TAG_FALLBACK = { bg: "rgba(10,22,40,0.06)", text: "#1B3A6B", border: "rgba(10,22,40,0.15)" };
 
 function RevealWord({ word, index, accent }: { word: string; index: number; accent?: boolean }) {
   return (
@@ -99,8 +111,8 @@ export default function HeroSection() {
           transition={{ delay: 2.7, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="text-navy/55 text-lg max-w-xl mx-auto mb-10 leading-relaxed"
         >
-          Upload and discover space research, mission data, and astronomical
-          observations — freely shared with the global community.
+          Browse and share mission files, astronomy datasets, and research
+          papers — no account needed.
         </motion.p>
 
         {/* CTAs */}
@@ -136,6 +148,27 @@ export default function HeroSection() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
           </motion.a>
+        </motion.div>
+
+        {/* Category tags */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 3.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-wrap gap-2 justify-center mt-9"
+        >
+          {CATEGORIES.map((cat) => {
+            const c = TAG_COLORS[cat] ?? TAG_FALLBACK;
+            return (
+              <span
+                key={cat}
+                className="tag"
+                style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}
+              >
+                {cat}
+              </span>
+            );
+          })}
         </motion.div>
       </motion.div>
 
